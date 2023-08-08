@@ -1,6 +1,6 @@
 const form = document.getElementById("job-form");
 const statusDiv = document.getElementById("status");
-const APIurl = "http://localhost:8000";
+const APIurl = "https://linkedinjobscraper.onrender.com";
 
 form.addEventListener("submit", async (e) => {  
   e.preventDefault();
