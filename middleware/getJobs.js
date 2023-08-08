@@ -1,5 +1,6 @@
 import env from "dotenv";
 env.config();
+import fetch from 'node-fetch';
 
 const apiUrl = `https://api.apify.com/v2/acts/bebity~linkedin-jobs-scraper/run-sync-get-dataset-items?token=${process.env.API_TOKEN}`;
 

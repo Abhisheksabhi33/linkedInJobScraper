@@ -1,6 +1,7 @@
 const form = document.getElementById("job-form");
 const statusDiv = document.getElementById("status");
 const APIurl = "https://linkedinjobscraper.onrender.com";
+// const APIurl = "http://localhost:8000";
 
 form.addEventListener("submit", async (e) => {  
   e.preventDefault();
@@ -36,7 +37,10 @@ form.addEventListener("submit", async (e) => {
       statusDiv.textContent = `Success! Scraped ${data.length} jobs`;
 
       // updating table with all jobs
-      statusDiv.textContent = "Updating table...";
+      setTimeout(() => {
+        statusDiv.textContent = "Updating table...";
+      }, 3000);
+
       statusDiv.textContent = "Table updated successfully";
     } else {
       statusDiv.textContent = data.message || "Error scraping jobs";
