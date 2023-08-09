@@ -174,7 +174,7 @@ async function updateTable(uniqueJobSet, res) {
 
     // create row on airtable
     try {
-      await table.create(
+      table.create(
         [
           {
             fields: {
@@ -204,10 +204,10 @@ async function updateTable(uniqueJobSet, res) {
         }
       );
 
-      // console.log(`Job "${jobTitle}" added to Airtable.`);
     } catch (error) {
-      // console.log("Update failed");
-      // console.log("Error: ", error);
+      res.json({
+        message: "Error: " + error,
+      });
     }
   }
 
@@ -215,7 +215,7 @@ async function updateTable(uniqueJobSet, res) {
 
   // send response to client
   res.json({
-    message: "All jobs added to Airtable",
-    length: uniqueJobSet.length,
+    message: "All jobs added to Airtable!!!",
+    length: uniqueJobSet.size,
   });
 }

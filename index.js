@@ -34,14 +34,8 @@ form.addEventListener("submit", async (e) => {
     console.log(data);
 
     if (response.ok) {
-      statusDiv.textContent = `Success! Scraped ${data.length} jobs`;
-
-      // updating table with all jobs
-      setTimeout(() => {
-        statusDiv.textContent = "Updating table...";
-      }, 3000);
-
-      statusDiv.textContent = "Table updated successfully";
+      statusDiv.textContent = `Success! Scraped ${data.length} jobs Airtable Updated! `;
+    
     } else {
       statusDiv.textContent = data.message || "Error scraping jobs";
     }
