@@ -35,8 +35,11 @@ export const getJobs = async (req, res) => {
   // );
 
   let titleArray = job_keywords.split(",");
+  titleArray = titleArray.map((title) => title.trim());
 
   let company_list = companyList.split(",");
+  company_list = company_list.map((company) => company.trim());
+
 
   // console.log("companyList: " + company_list + " " + typeof company_list);
 
@@ -48,7 +51,7 @@ export const getJobs = async (req, res) => {
         location: job_location,
       };
 
-      if (company_list !== "") {
+      if (company_list.length > 0 && company_list[0] !== "" && company_list[0] !== " ") {
         requestData.companyName = company_list;
       }
 
@@ -61,10 +64,10 @@ export const getJobs = async (req, res) => {
       }
 
       if (totalJobs !== "") {
-        requestData.rows = parseInt(totalJobs);
+        requestData.rows = parseInt(totalJobs) + 1;
       }
 
-      // console.log(requestData);
+      console.log(requestData);
 
       const requestOptions = {
         method: "POST",
@@ -86,9 +89,14 @@ export const getJobs = async (req, res) => {
 
   const fetchAllData = async () => {
     try {
+       
+      if(titleArray.length > 0){
       const promises = titleArray.map((title) => fetchDataForTitle(title));
       const dataArray = await Promise.all(promises);
       return dataArray;
+      }else{
+        res.status(422).json({message: "Please enter one or more job title to scrape"})
+      }
     } catch (error) {
       throw error;
     }
@@ -111,7 +119,7 @@ export const getJobs = async (req, res) => {
       noOfJobs = allJobs.length;
 
       if (noOfJobs > 0) {
-        // console.log(`Total number of jobs Found: ${noOfJobs}`);
+        console.log(`Total number of jobs Found: ${noOfJobs}`);
 
         const uniqueJobSet = new Set();
         const job_title = new Set();
