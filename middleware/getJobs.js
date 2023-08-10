@@ -1,6 +1,6 @@
 import env from "dotenv";
 env.config();
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
 const apiUrl = `https://api.apify.com/v2/acts/bebity~linkedin-jobs-scraper/run-sync-get-dataset-items?token=${process.env.API_TOKEN}`;
 
@@ -40,7 +40,6 @@ export const getJobs = async (req, res) => {
   let company_list = companyList.split(",");
   company_list = company_list.map((company) => company.trim());
 
-
   // console.log("companyList: " + company_list + " " + typeof company_list);
 
   // make all a new promise
@@ -51,7 +50,11 @@ export const getJobs = async (req, res) => {
         location: job_location,
       };
 
-      if (company_list.length > 0 && company_list[0] !== "" && company_list[0] !== " ") {
+      if (
+        company_list.length > 0 &&
+        company_list[0] !== "" &&
+        company_list[0] !== " "
+      ) {
         requestData.companyName = company_list;
       }
 
@@ -64,7 +67,7 @@ export const getJobs = async (req, res) => {
       }
 
       if (totalJobs !== "") {
-        requestData.rows = parseInt(totalJobs) + 1;
+        requestData.rows = parseInt(totalJobs);
       }
 
       console.log(requestData);
@@ -80,7 +83,13 @@ export const getJobs = async (req, res) => {
       try {
         const response = await fetch(apiUrl, requestOptions);
         const data = await response.json();
-        resolve(data);
+
+        // Filter out internship jobs
+        const filteredData = data.filter(
+          (job) => job.experienceLevel.toLowerCase() !== "internship"
+        );
+
+        resolve(filteredData);
       } catch (error) {
         reject(error);
       }
@@ -89,14 +98,9 @@ export const getJobs = async (req, res) => {
 
   const fetchAllData = async () => {
     try {
-       
-      if(titleArray.length > 0){
       const promises = titleArray.map((title) => fetchDataForTitle(title));
       const dataArray = await Promise.all(promises);
       return dataArray;
-      }else{
-        res.status(422).json({message: "Please enter one or more job title to scrape"})
-      }
     } catch (error) {
       throw error;
     }
@@ -115,6 +119,11 @@ export const getJobs = async (req, res) => {
       });
 
       // console.log(allJobs);
+
+      // Filter out internship jobs directly before adding to uniqueJobSet
+      allJobs = allJobs.filter(
+        (job) => job.contractType.toLowerCase() !== "internship"
+      );
 
       noOfJobs = allJobs.length;
 
@@ -135,8 +144,8 @@ export const getJobs = async (req, res) => {
             !job_title.has(x)
           ) {
             if (
-              job.contractType !== "Internship" &&
-              job.contractType !== "internship"
+              job.experienceLevel !== "Internship" &&
+              job.experienceLevel !== "internship"
             ) {
               uniqueJobSet.add(job);
               job_title.add(x);
@@ -164,6 +173,10 @@ export const getJobs = async (req, res) => {
 
 async function updateTable(uniqueJobSet, res) {
   for (let job of uniqueJobSet) {
+    if (job.contractType.toLowerCase() === "internship") {
+      continue; // Skip internship jobs
+    }
+
     const jobTitle = job.title;
     const jobUrl = job.jobUrl;
     const publishedAt = job.publishedAt;
@@ -181,41 +194,43 @@ async function updateTable(uniqueJobSet, res) {
     let companyName = job.companyName;
 
     // create row on airtable
-    try {
-      table.create(
-        [
-          {
-            fields: {
-              "Job Title": jobTitle,
-              "Job Url": jobUrl,
-              "Published At": publishedAt,
-              Salary: salary,
-              "Linkedin Url": linkedinUrl,
-              "Job Location": location,
-              "Job Posted Time": jobPostedTime,
-              "Applications Count": applicationsCount,
-              "Job Description": JobDescription,
-              "Employment Type": contractType,
-              "Experience Level": experienceLevel,
-              "Work Type": work_type,
-              Industry: sector,
-              "Company Id": companyId,
-              "Company Name": companyName,
-            },
-          },
-        ],
-        function (err, records) {
-          if (err) {
-            console.error(err);
-            return;
-          }
-        }
-      );
 
-    } catch (error) {
-      res.json({
-        message: "Error: " + error,
-      });
+    if (experienceLevel.toLowerCase !== "internship") {
+      try {
+        table.create(
+          [
+            {
+              fields: {
+                "Job Title": jobTitle,
+                "Job Url": jobUrl,
+                "Published At": publishedAt,
+                Salary: salary,
+                "Linkedin Url": linkedinUrl,
+                "Job Location": location,
+                "Job Posted Time": jobPostedTime,
+                "Applications Count": applicationsCount,
+                "Job Description": JobDescription,
+                "Employment Type": contractType,
+                "Experience Level": experienceLevel,
+                "Work Type": work_type,
+                Industry: sector,
+                "Company Id": companyId,
+                "Company Name": companyName,
+              },
+            },
+          ],
+          function (err, records) {
+            if (err) {
+              console.error(err);
+              return;
+            }
+          }
+        );
+      } catch (error) {
+        res.json({
+          message: "Error: " + error,
+        });
+      }
     }
   }
 
